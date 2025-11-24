@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethereum Fake Transaction Generator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            color: #ff4757;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        button {
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ff2e40;
+        }
+        .balance {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .transaction-details {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #2d2d2d;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            color: #51cf66;
+        }
+        .error {
+            color: #ff4757;
+        }
+        .loading {
+            color: #feca57;
+        }
+        .etherscan-link {
+            display: block;
+            margin-top: 10px;
+            color: #51cf66;
+            text-decoration: none;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ethereum Fake Transaction Generator</h1>
+
+        <div class="form-group">
+            <label for="privateKey">Private Key:</label>
+            <input type="password" id="privateKey" placeholder="Enter your private key">
+        </div>
+
+        <div class="balance" id="balanceDisplay">
+            Loading balance...
+        </div>
+
+        <div class="form-group">
+            <label for="token">Select Token:</label>
+            <select id="token">
+                <option value="USDT">USDT (Tether)</option>
+                <option value="USDC">USDC (USD Coin)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="recipient">Recipient Address:</label>
+            <input type="text" id="recipient" placeholder="Enter recipient address">
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Amount (Fake Display Only):</label>
+            <input type="number" id="amount" placeholder="Enter amount" min="0" step="0.000001">
+        </div>
+
+        <button id="generateBtn">Generate Fake Transaction</button>
+
+        <div class="transaction-details" id="transactionDetails">
+            <h3>Transaction Details</h3>
+            <p id="txStatus"></p>
+            <p>Transaction Hash: <a id="txLink" class="etherscan-link" target="_blank"></a></p>
+            <p>Amount Displayed: <span id="displayedAmount"></span></p>
+            <p>Actual Amount Sent: 0</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script>
+        // Configuration
+        const INFURA_URL = "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID";
+        const GAS_LIMIT = 21000;
+        const FAKE_GAS = 20.0;
+
+        const TOKENS = {
+            "USDT": {
+                address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                decimals: 6,
+                symbol: "USDT"
+            },
+            "USDC": {
+                address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                decimals: 6,
+                symbol: "USDC"
+            }
+        };
+
+        const ERC20_ABI = [
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "name",
+                "outputs": [{"name": "", "type": "string"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [{"name": "", "type": "string"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "decimals",
+                "outputs": [{"name": "", "type": "uint8"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": true,
+                "inputs": [{"name": "_owner", "type": "address"}],
+                "name": "balanceOf",
+                "outputs": [{"name": "balance", "type": "uint256"}],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{"name": "_to", "type": "address"}, {"name": "_value", "type": "uint256"}],
+                "name": "transfer",
+                "outputs": [{"name": "", "type": "bool"}],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        // Initialize Web3
+        const web3 = new Web3(INFURA_URL);
+
+        // DOM Elements
+        const privateKeyInput = document.getElementById('privateKey');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const tokenSelect = document.getElementById('token');
+        const recipientInput = document.getElementById('recipient');
+        const amountInput = document.getElementById('amount');
+        const generateBtn = document.getElementById('generateBtn');
+        const transactionDetails = document.getElementById('transactionDetails');
+        const txStatus = document.getElementById('txStatus');
+        const txLink = document.getElementById('txLink');
+        const displayedAmount = document.getElementById('displayedAmount');
+
+        let senderAddress = null;
+        let accountBalance = 0;
+
+        // Event Listeners
+        generateBtn.addEventListener('click', generateFakeTransaction);
+
+        // Functions
+        async function loadBalance() {
+            const privateKey = privateKeyInput.value.trim();
+
+            if (!privateKey) {
+                balanceDisplay.textContent = "Please enter a private key";
+                balanceDisplay.className = "balance error";
+                return;
+            }
+
+            try {
+                // Get account from private key
+                const account = web3.eth.accounts.privateKeyToAccount(privateKey);
+                senderAddress = account.address;
+
+                // Get ETH balance
+                const ethBalance = await web3.eth.getBalance(senderAddress);
+                accountBalance = web3.utils.fromWei(ethBalance, 'ether');
+
+                // Get token balance
+                const token = tokenSelect.value;
+                const tokenContract = new web3.eth.Contract(ERC20_ABI, TOKENS[token].address);
+                const tokenBalance = await tokenContract.methods.balanceOf(senderAddress).call();
+                const tokenBalanceFormatted = web3.utils.fromWei(tokenBalance, 'mwei'); // 6 decimals
+
+                balanceDisplay.innerHTML = `
+                    <strong>ETH Balance:</strong> ${accountBalance.toFixed(6)} ETH<br>
+                    <strong>${token} Balance:</strong> ${tokenBalanceFormatted} ${token}
+                `;
+                balanceDisplay.className = "balance success";
+            } catch (error) {
+                console.error(error);
+                balanceDisplay.textContent = "Error loading balance: " + error.message;
+                balanceDisplay.className = "balance error";
+            }
+        }
+
+        async function generateFakeTransaction() {
+            const privateKey = privateKeyInput.value.trim();
+            const token = tokenSelect.value;
+            const recipient = recipientInput.value.trim();
+            const amount = amountInput.value;
+
+            if (!privateKey) {
+                showError("Please enter a private key");
+                return;
+            }
+
+            if (!recipient) {
+                showError("Please enter a recipient address");
+                return;
+            }
+
+            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+                showError("Please enter a valid amount");
+                return;
+            }
+
+            try {
+                // Show loading state
+                txStatus.textContent = "Creating transaction... (this may take a few seconds)";
+                txStatus.className = "loading";
+                transactionDetails.style.display = "block";
+
+                // Get account from private key
+                const account = web3.eth.accounts.privateKeyToAccount(privateKey);
+                const nonce = await web3.eth.getTransactionCount(account.address, 'pending');
+
+                // Create transaction
+                let tx;
+                if (token === "ETH") {
+                    tx = {
+                        from: account.address,
+                        to: recipient,
+                        value: "0", // Actual value is 0
+                        gas: GAS_LIMIT,
+                        gasPrice: web3.utils.toWei(FAKE_GAS, 'gwei'),
+                        nonce: nonce,
+                        chainId: 1
+                    };
+                } else {
+                    const tokenContract = new web3.eth.Contract(ERC20_ABI, TOKENS[token].address);
+                    tx = tokenContract.methods.transfer(recipient, "0").buildTransaction({
+                        from: account.address,
+                        gas: GAS_LIMIT,
+                        gasPrice: web3.utils.toWei(FAKE_GAS, 'gwei'),
+                        nonce: nonce,
+                        chainId: 1
+                    });
+                }
+
+                // Sign transaction
+                const signedTx = await web3.eth.accounts.signTransaction(tx, privateKey);
+
+                // Send transaction
+                const txHash = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+                // Update UI with transaction details
+                txStatus.textContent = "Transaction created successfully!";
+                txStatus.className = "success";
+                txLink.href = `https://etherscan.io/tx/${txHash.transactionHash}`;
+                txLink.textContent = txHash.transactionHash;
+                displayedAmount.textContent = `${amount} ${token}`;
+
+                // Note: The actual amount sent is 0, but the transaction will show on Etherscan
+                // You can manually edit the transaction details on Etherscan to show the fake amount
+            } catch (error) {
+                console.error(error);
+                showError("Error creating transaction: " + error.message);
+            }
+        }
+
+        function showError(message) {
+            txStatus.textContent = message;
+            txStatus.className = "error";
+        }
+
+        // Load balance when private key is entered
+        privateKeyInput.addEventListener('input', loadBalance);
+    </script>
+</body>
+</html>
