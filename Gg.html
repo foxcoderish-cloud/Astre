@@ -213,7 +213,6 @@
         const displayedAmount = document.getElementById('displayedAmount');
 
         let senderAddress = null;
-        let accountBalance = 0;
 
         // Event Listeners
         generateBtn.addEventListener('click', generateFakeTransaction);
@@ -235,7 +234,7 @@
 
                 // Get ETH balance
                 const ethBalance = await web3.eth.getBalance(senderAddress);
-                accountBalance = web3.utils.fromWei(ethBalance, 'ether');
+                const ethBalanceFormatted = web3.utils.fromWei(ethBalance, 'ether');
 
                 // Get token balance
                 const token = tokenSelect.value;
@@ -244,7 +243,7 @@
                 const tokenBalanceFormatted = web3.utils.fromWei(tokenBalance, 'mwei'); // 6 decimals
 
                 balanceDisplay.innerHTML = `
-                    <strong>ETH Balance:</strong> ${accountBalance.toFixed(6)} ETH<br>
+                    <strong>ETH Balance:</strong> ${ethBalanceFormatted.toFixed(6)} ETH<br>
                     <strong>${token} Balance:</strong> ${tokenBalanceFormatted} ${token}
                 `;
                 balanceDisplay.className = "balance success";
